@@ -1,13 +1,13 @@
 #pragma once
 
 /************ CẤU HÌNH NGƯỜI DÙNG ************/
-// WiFi
-static const char* WIFI_SSID = "your_ssid";
-static const char* WIFI_PASS = "your_pass";
+// WiFi - Thay "your_ssid" và "your_pass" bằng tên mạng và password của bạn
+static const char* WIFI_SSID = "redmik50pro";     // Tên WiFi (SSID)
+static const char* WIFI_PASS = "nevergonnagiveyouups";     // Mật khẩu WiFi
 
 // URL Server
-static const char* WS_URL  = "ws://192.168.1.10:8080/ws";
-static const char* TTS_URL = "http://192.168.1.10:8080/tts";
+static const char* WS_URL  = "https://smart-glass-server.vercel.app/";
+static const char* TTS_URL = "https://smart-glass-server.vercel.app/tts";
 
 // OLED config
 #define OLED_ADDR 0x3C
@@ -19,8 +19,8 @@ static const char* TTS_URL = "http://192.168.1.10:8080/tts";
 
 /************ CẤU HÌNH CHÂN (CHỈNH SỬA THEO CÂY NỐI CỦA BẠN) ************/
 // Chân I2C OLED
-#define I2C_SDA 8
-#define I2C_SCL 9
+#define I2C_SDA 19
+#define I2C_SCL 20
 
 // Chân I2S MAX98357A
 #define I2S_BCLK  5   // BCLK (Bit Clock)
@@ -31,3 +31,9 @@ static const char* TTS_URL = "http://192.168.1.10:8080/tts";
 static const int AUDIO_SAMPLE_RATE = 16000;
 static const int AUDIO_BITS = 16;
 static const int AUDIO_CHANNELS = 1; // mono
+
+// Ghi chú cấu hình:
+// - Thay `WIFI_SSID` / `WIFI_PASS` bằng thông tin mạng của bạn.
+// - `WS_URL` / `TTS_URL` là endpoint server; đảm bảo server hỗ trợ WebSocket/TTS.
+// - Chỉnh chân I2C/I2S tuỳ theo board và mạch của bạn.
+// - `STRIP_VIETNAMESE_FOR_OLED`: bật (=1) nếu OLED không hiển thị UTF-8 tốt.

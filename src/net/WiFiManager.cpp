@@ -3,14 +3,35 @@
 
 #include <WiFi.h>
 
-void WiFiManager::connectBlocking() {
+bool WiFiManager::connectBlocking(unsigned long timeout_ms) {
+  // Chuyển WiFi về chế độ STA (station - mạch kết nối tới WiFi)
   WiFi.mode(WIFI_STA);
+  WiFi.disconnect(false); // Tắt kết nối cũ (không tắt WiFi)
+  
+  // Bắt đầu kết nối
   WiFi.begin(WIFI_SSID, WIFI_PASS);
+  
+  unsigned long start_time = millis();
+  
+  // Block cho tới khi kết nối thành công hoặc timeout
   while (WiFi.status() != WL_CONNECTED) {
+    if (millis() - start_time > timeout_ms) {
+      // Timeout: kết nối thất bại
+      WiFi.disconnect(false);
+      return false;
+    }
     delay(250);
   }
+  
+  return true; // Kết nối thành công
 }
 
 bool WiFiManager::isConnected() const {
+  // Trả true nếu mạch đang kết nối tới WiFi
   return WiFi.status() == WL_CONNECTED;
+}
+
+void WiFiManager::disconnect() {
+  // Ngắt kết nối WiFi
+  WiFi.disconnect(true); // true = tắt WiFi radio
 }

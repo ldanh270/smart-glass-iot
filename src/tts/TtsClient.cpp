@@ -50,19 +50,21 @@ bool TtsClient::requestAndPlay(const String& text, const String& lang, AudioOutI
   const size_t BUF_SZ = 1024;
   uint8_t buf[BUF_SZ];
 
+  // Kiểm tra header WAV (nếu server trả file WAV) và bỏ qua header 44 byte
   bool headerChecked = false;
   bool skippedWavHeader = false;
   size_t wavSkipLeft = 44;
 
-  // Hết thời gian chờ an toàn để tránh bị kẹt phát nếu server dừng
+  // Thời gian để phát hiện mất dữ liệu; nếu vượt quá sẽ thoát vòng đọc
   unsigned long lastDataMs = millis();
 
+  // Đọc stream cho tới khi server đóng hoặc có lỗi
   while (http.connected()) {
     int avail = stream->available();
     if (avail <= 0) {
-      // LƯU Ý: độ trễ nhỏ ngăn chặn chiếm dụng CPU
+      // Tránh busy-loop, đợi một chút
       delay(5);
-      if (millis() - lastDataMs > 5000) break;
+      if (millis() - lastDataMs > 5000) break; // timeout nếu không có dữ liệu
       continue;
     }
 
@@ -72,24 +74,26 @@ bool TtsClient::requestAndPlay(const String& text, const String& lang, AudioOutI
 
     lastDataMs = millis();
 
-    // Kiểm tra WAV header một lần (nếu server trả WAV)
+    // Chỉ kiểm tra header một lần đầu tiên
     if (!headerChecked) {
       headerChecked = true;
       if (looksLikeWavHeader(buf, n)) skippedWavHeader = true;
     }
 
     size_t offset = 0;
+    // Nếu là WAV, bỏ qua phần header 44 byte trước khi gửi PCM thực
     if (skippedWavHeader && wavSkipLeft > 0) {
       size_t skipNow = min((size_t)n, wavSkipLeft);
       offset += skipNow;
       wavSkipLeft -= skipNow;
-      if (offset >= (size_t)n) continue;
+      if (offset >= (size_t)n) continue; // tất cả dữ liệu hiện tại là header
     }
 
-    // Ghi PCM còn lại tới I2S
+    // Ghi phần PCM còn lại tới I2S. Nếu ghi thất bại thì dừng phát.
     if (!audio.write(buf + offset, (size_t)n - offset)) break;
   }
 
+  // Dọn dẹp: dừng I2S, cập nhật trạng thái và đóng kết nối HTTP
   audio.stop();
   speaking = false;
 
