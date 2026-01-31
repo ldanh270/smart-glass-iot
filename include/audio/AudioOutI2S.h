@@ -10,7 +10,7 @@ public:
   // Khởi tạo driver I2S, trả về true nếu thành công
   bool begin();
 
-  // Dừng/flush buffer (không un-install driver ở đây)
+  // Dừng/flush buffer (không un-install driver ở đây) 
   void stop();
 
   // Ghi dữ liệu PCM (PMC: Pulse Modulation Code) (raw bytes) tới I2S. Trả về true nếu gửi thành công.

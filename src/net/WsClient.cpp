@@ -1,10 +1,10 @@
+// cspell:disable
+
 #include "net/WsClient.h"
 #include "config.h"
-
 #include "display/OledDisplay.h"
 #include "tts/TtsClient.h"
 #include "audio/AudioOutI2S.h"
-
 #include <ArduinoJson.h>
 
 // Hàm tiện ích: cắt chuỗi an toàn để tránh gửi/hiển thị quá dài
@@ -20,20 +20,32 @@ void WsClient::begin(OledDisplay& oled, TtsClient& tts, AudioOutI2S& audio) {
   ttsPtr = &tts;
   audioPtr = &audio;
 
-  // Đăng ký xử lý message WebSocket
+  // Đăng ký xử lý message WebSocket - hỗ trợ JSON và plain text
   ws.onMessage([&](websockets::WebsocketsMessage msg) {
-    // Kỳ vọng payload là JSON, ví dụ:
-    // {"type":"translate_result","text":"...","lang":"vi"}
-    JsonDocument doc; // ArduinoJson v7: dùng JsonDocument động
+    String text;
+    String lang = "vi"; // Ngôn ngữ mặc định
+
+    // Thử parse JSON trước
+    JsonDocument doc;
     DeserializationError err = deserializeJson(doc, msg.data());
-    if (err) return; // nếu JSON không hợp lệ, bỏ qua
+    
+    if (!err && doc.containsKey("text")) {
+      // Là JSON hợp lệ với field "text"
+      text = doc["text"] | "";
+      lang = doc["lang"] | "vi";
+      
+      // Kiểm tra type nếu có (mặc định xử lý nếu không có type)
+      const char* type = doc["type"] | "";
+      if (type[0] != '\0' && String(type) != "translate_result") {
+        return; // Bỏ qua nếu type không phải "translate_result"
+      }
+    } else {
+      // Không phải JSON hoặc JSON không có "text" -> coi là plain text
+      text = msg.data();
+    }
 
-    const char* type = doc["type"] | "";
-    if (String(type) != "translate_result") return; // chỉ xử lý loại này
-
-    // Lấy text và ngôn ngữ (mặc định "vi")
-    String text = doc["text"] | "";
-    String lang = doc["lang"] | "vi";
+    // Bỏ qua nếu text rỗng
+    if (text.length() == 0) return;
 
     // Hiển thị ngay lập tức trên OLED để phản hồi UI nhanh
     oledPtr->printWrapped(safeTruncate(text, 300));

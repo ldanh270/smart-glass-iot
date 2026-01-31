@@ -17,4 +17,7 @@ private:
 
   // Nếu cấu hình yêu cầu, thay các ký tự UTF-8 (dấu) bằng '?' để tránh lỗi hiển thị
   String stripVietnamese(const String& in);
+
+    // Chuyển Unicode ký tự Việt thành ASCII không dấu
+  char vietneseToAscii(uint16_t unicode);
 };
