@@ -1,0 +1,12 @@
+// Display (Oled)
+#define OLED_ADDR 0x3C
+#define OLED_W    128
+#define OLED_H    64
+
+#define STRIP_VIETNAMESE_FOR_OLED 1 // To remove Vietnamese diacritics for easier OLED reading
+
+// Button
+
+// Mic
+
+// Speaker
