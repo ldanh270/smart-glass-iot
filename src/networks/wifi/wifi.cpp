@@ -3,7 +3,7 @@
 #include "config.h"
 #include <WiFi.h>
 
-bool WiFiManager::connectBlocking(unsigned long timeout_ms) {
+bool WiFiManager::connectBlocking() {
   // Chuyển WiFi về chế độ STA (station - mạch kết nối tới WiFi)
   WiFi.mode(WIFI_STA);
   WiFi.disconnect(false); // Tắt kết nối cũ (không tắt WiFi)
@@ -15,7 +15,7 @@ bool WiFiManager::connectBlocking(unsigned long timeout_ms) {
   
   // Block cho tới khi kết nối thành công hoặc timeout
   while (WiFi.status() != WL_CONNECTED) {
-    if (millis() - start_time > timeout_ms) {
+    if (millis() - start_time > WIFI_TIMEOUT_MS) {
       // Timeout: kết nối thất bại
       WiFi.disconnect(false);
       return false;
