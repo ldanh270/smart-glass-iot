@@ -3,6 +3,10 @@
 #define OLED_W    128
 #define OLED_H    64
 
+// I2C pins for ESP32-S3 (Freenove)
+#define I2C_SDA 19
+#define I2C_SCL 20
+
 #define STRIP_VIETNAMESE_FOR_OLED 1 // To remove Vietnamese diacritics for easier OLED reading
 
 // Button
