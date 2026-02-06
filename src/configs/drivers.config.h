@@ -11,7 +11,6 @@
 
 // Button
 
-// Mic
 // Mic (INMP441)
 #define MIC_I2S_BCLK 21
 #define MIC_I2S_WS   48

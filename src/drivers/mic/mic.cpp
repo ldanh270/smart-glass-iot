@@ -140,7 +140,8 @@ bool MicInmp441::installI2S() {
     cfg.sample_rate = _sampleRate;
     cfg.bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT;
     cfg.channel_format = I2S_CHANNEL_FMT_ONLY_LEFT;
-    cfg.communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S);
+    cfg.communication_format = I2S_COMM_FORMAT_STAND_I2S;
+    cfg.communication_format = I2S_COMM_FORMAT_STAND_I2S;
     cfg.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;
     cfg.dma_buf_count = MIC_DMA_BUF_CNT;
     cfg.dma_buf_len = (int)_frameSamples;
