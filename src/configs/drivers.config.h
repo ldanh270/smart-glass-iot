@@ -43,3 +43,6 @@
 #define MIC_I2S_SD   35
 
 // Speaker
+#define SPK_I2S_BCLK 38
+#define SPK_I2S_WS   39
+#define SPK_I2S_DIN  40

@@ -68,6 +68,7 @@ void loop() {
         Serial.println("BTN1 Click");
     }
 
+    // BTN2 hold: toggle wifi
     if (btnPower.onHold()) {
         Serial.println("BTN2 Hold -> Toggle WiFi");
         if (wifiManager.isConnected()) wifiManager.disconnect();
