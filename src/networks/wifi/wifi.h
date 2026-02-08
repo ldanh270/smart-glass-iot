@@ -12,14 +12,14 @@
 
 class WiFiManager {
 public:
-  // Kết nối tới WiFi với timeout (mili giây). Mặc định 30 giây.
-  bool connectBlocking();
-  
-  // Kiểm tra trạng thái kết nối
-  bool isConnected();
-  
-  // Ngắt kết nối WiFi
-  void disconnect();
+    // Kết nối tới WiFi với timeout (mili giây). Mặc định 30 giây.
+    bool connectBlocking();
+
+    // Kiểm tra trạng thái kết nối
+    bool isConnected();
+
+    // Ngắt kết nối WiFi
+    void disconnect();
 };
 
 #endif

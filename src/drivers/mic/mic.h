@@ -7,25 +7,12 @@
 
 #include "../../configs/drivers.config.h"
 
-// ===== Fallback pin mapping (nếu drivers.config.h chưa define phần Mic) =====
-#ifndef MIC_I2S_BCLK
-#define MIC_I2S_BCLK 21   // INMP441 SCK
-#endif
-
-#ifndef MIC_I2S_WS
-#define MIC_I2S_WS   48   // INMP441 WS / LRCLK
-#endif
-
-#ifndef MIC_I2S_SD
-#define MIC_I2S_SD   35   // INMP441 SD
-#endif
-
 class MicInmp441 {
 public:
     // init(): khai báo/cấu hình chân kết nối + cài I2S driver
     // sampleRate: khuyến nghị 16000 cho voice
     // frameSamples: số sample mỗi frame (ảnh hưởng độ trễ & tần suất callback)
-    bool init(uint32_t sampleRate = 16000, size_t frameSamples = 256);
+    bool init(uint32_t sampleRate = SAMPLE_RATE, size_t frameSamples = FRAME_SAMPLES);
 
     // start(): bắt đầu thu âm
     bool start();
@@ -33,7 +20,7 @@ public:
     // stop(): dừng thu âm (khi chuyển mode khác)
     void stop();
 
-    // Gọi trong loop(): đọc 1 frame -> tính RMS/Peak
+    // Gọi trong loop(): đọc 1 frame -> tính RMS/Peak (luôn cập nhật lastRms/lastPeak)
     // Nếu RMS vượt ngưỡng và có callback -> gọi callback ("gửi")
     void process();
 
@@ -60,7 +47,8 @@ private:
     static int16_t convert32To16(int32_t s32);
 
 private:
-    bool _inited  = false;
+    bool initialized = false;
+    bool _inited = false;
     bool _running = false;
 
     uint32_t _sampleRate = 16000;
@@ -68,7 +56,7 @@ private:
 
     float   _thresholdRms = 300.0f;
     int16_t _lastPeak = 0;
-    float   _lastRms  = 0.0f;
+    float   _lastRms = 0.0f;
 
     OnAudioFrame _cb = nullptr;
 
