@@ -6,174 +6,131 @@
 #include <WiFi.h>
 #include <math.h>
 
-// Tạo đối tượng OledDisplay và WiFiManager
+// --- KHỞI TẠO ĐỐI TƯỢNG ---
 OledDisplay oled;
 WiFiManager wifiManager;
-
-Button btnMode(2);   // BTN1
-Button btnPower(3);  // BTN2
-
+Button btnMode(2);
+Button btnPower(3);
 MicInmp441 mic;
 
-// Biến để lưu trạng thái audio
+// --- BIẾN TOÀN CỤC ---
 volatile bool g_audioDetected = false;
-volatile float g_currentRms = 0.0f;
 volatile uint32_t g_lastAudioTime = 0;
 
-// Callback khi có audio frame
+// Callback Audio
 void onAudioFrameReceived(const int16_t* pcm16, size_t samples) {
     g_audioDetected = true;
     g_lastAudioTime = millis();
-
-    // Tính RMS từ pcm16
-    int64_t sumSq = 0;
-    for (size_t i = 0; i < samples; i++) {
-        sumSq += (int64_t)pcm16[i] * (int64_t)pcm16[i];
-    }
-    g_currentRms = sqrtf((float)sumSq / (float)samples);
-
-    Serial.printf("[AUDIO] Detected! RMS=%.1f, samples=%u\n", g_currentRms, samples);
+    // Không tính toán nặng trong callback để tránh chặn CPU
 }
 
 void setup() {
     Serial.begin(115200);
-    delay(1000);
 
-    Serial.println("Starting OLED Display and WiFi Test...");
+    // 1. Init OLED
+    if (!oled.init()) { Serial.println("OLED Failed"); while (1); }
+    oled.print(0, 0, "System Booting...");
+    oled.show(); // Đẩy hiển thị ra ngay lập tức
 
-    // Test 1: Khởi tạo OLED
-    if (oled.init()) {
-        Serial.println("OLED initialized successfully!");
-    }
-    else {
-        Serial.println("OLED initialization failed!");
-        while (1); // Dừng nếu không khởi tạo được
-    }
-
-    delay(1000);
-
-    // Test 2: Kết nối WiFi
-    Serial.println("Connecting to WiFi...");
-    oled.clear();
-    oled.print(0, 0, "WiFi: Connecting...");
+    // 2. Init WiFi
+    oled.print(0, 10, "Connecting WiFi...");
+    oled.show();
 
     if (wifiManager.connectBlocking()) {
-        Serial.println("WiFi connected successfully!");
-        Serial.print("IP Address: ");
-        Serial.println(WiFi.localIP());
-
-        oled.clear();
-        oled.print(0, 0, "WiFi: Connected");
-        // oled.print(0, 10, "IP: " + WiFi.localIP().toString());
-        delay(3000);
+        oled.print(0, 20, "WiFi OK!");
     }
     else {
-        Serial.println("WiFi connection failed!");
-        oled.clear();
-        oled.print(0, 0, "WiFi: Failed");
-        delay(2000);
+        oled.print(0, 20, "WiFi Failed!");
     }
+    oled.show();
+    delay(1000);
 
-    Serial.println("Setup completed!");
-
-    // Khởi tạo các nút bấm
+    // 3. Init Hardware khác
     btnMode.init();
     btnPower.init();
 
     mic.init();
-
-    // Đặt ngưỡng RMS threshold (điều chỉnh giá trị này phù hợp với mic của bạn)
-    mic.setThresholdRms(500.0f);  // Bắt đầu từ 500, có thể tăng/giảm
-
-    // Đăng ký callback
+    mic.setThresholdRms(500.0f);
     mic.setOnAudioFrame(onAudioFrameReceived);
-
     mic.start();
-    Serial.println("Button initialized!");
+
+    oled.clear();
+    oled.show();
 }
 
 void loop() {
-    // đọc nút (tùy Button lib của bạn có cần update() hay không)
-    // btnMode.update();
-    // btnPower.update();
-
-    // luôn đọc mic
+    // Process liên tục
     mic.process();
+    // btnMode.update(); // Uncomment nếu thư viện nút cần
 
-    // BTN1
+    // Xử lý logic nút bấm
     if (btnMode.isPressed()) {
-        Serial.println("[BTN1] Pressed → Switch mode");
-    }
-    if (btnMode.onHold()) {
-        Serial.println("[BTN1] Hold → long press action");
+        Serial.println("BTN1 Click");
     }
 
-    // BTN2 hold: toggle wifi
     if (btnPower.onHold()) {
-        Serial.println("[BTN2] Hold → Toggle WiFi");
-        if (wifiManager.isConnected()) {
-            wifiManager.disconnect();
-        }
-        else {
-            wifiManager.connectBlocking();
-        }
+        Serial.println("BTN2 Hold -> Toggle WiFi");
+        if (wifiManager.isConnected()) wifiManager.disconnect();
+        else wifiManager.connectBlocking();
     }
 
-    // Kiểm tra timeout audio (nếu quá 500ms không có audio thì tắt flag)
+    // Logic Audio Timeout
     if (g_audioDetected && (millis() - g_lastAudioTime > 500)) {
         g_audioDetected = false;
     }
 
-    // UI realtime (10Hz)
+    // --- CẬP NHẬT MÀN HÌNH (50ms = 20 FPS) ---
+    // 100ms hơi chậm, 50ms sẽ mượt hơn cho visualizer
     static uint32_t lastUi = 0;
-    if (millis() - lastUi >= 100) {
+    if (millis() - lastUi >= 50) {
         lastUi = millis();
 
-        // nếu đang giữ BTN1 thì cho ưu tiên màn hình riêng, không overwrite
+        // 1. XÓA BUFFER (Chưa hiển thị gì cả)
+        oled.clear();
+
+        // 2. VẼ CÁC THÀNH PHẦN VÀO BUFFER
+
+        // Ưu tiên hiển thị khi giữ nút
         if (btnMode.isDownRaw()) {
-            oled.clear();
-            oled.print(0, 0, "BTN1 Hold");
+            oled.print(0, 20, "BTN1 HOLDING...");
+            oled.show(); // Đẩy ra màn hình và kết thúc luôn frame này
             return;
         }
 
+        // Tính toán Audio
         float rms = mic.lastRms();
         float dbfs = -90.0f;
         if (rms > 1.0f) {
             dbfs = 20.0f * log10f(rms / 32768.0f);
-            if (dbfs < -90.0f) dbfs = -90.0f;
         }
 
-        // Vẽ 1 frame: clear 1 lần thôi
-        oled.clear();
+        // Dòng 1: WiFi & Status
+        String status = wifiManager.isConnected() ? "WiFi" : "Offline";
+        if (g_audioDetected) status += " [REC]";
+        oled.print(0, 0, status);
 
-        // dòng trạng thái
-        String statusLine = wifiManager.isConnected() ? "WiFi: OK" : "WiFi: ...";
-        if (g_audioDetected) {
-            statusLine += " [REC]";  // Hiển thị đang ghi âm
-        }
-        oled.print(0, 0, statusLine);
-
-        // IP (nếu muốn)
+        // Dòng 2: IP hoặc Info
         if (wifiManager.isConnected()) {
-            oled.print(0, 10, "IP: " + WiFi.localIP().toString());
+            String ip = WiFi.localIP().toString();
+            // Chỉ lấy đuôi IP cho gọn: ...1.105
+            oled.print(0, 12, "IP:.." + ip.substring(ip.lastIndexOf('.')));
         }
 
-        // mic info
-        oled.print(0, 24, "dBFS: " + String(dbfs, 1));
-        oled.print(0, 36, "RMS : " + String(rms, 1));
+        // Dòng 3: Số liệu Mic
+        oled.print(0, 24, String(dbfs, 0) + "dB | RMS:" + String((int)rms));
 
-        // Vẽ thanh âm lượng (volume bar)
-        // Map RMS từ 0-10000 xuống 0-100 pixels
-        int barWidth = constrain((int)(rms / 10000.0f * 100.0f), 0, 100);
+        // Dòng 4: Thanh Bar
+        int barWidth = constrain((int)(rms / 8000.0f * 14.0f), 0, 14);
         String bar = "[";
-        int numBars = barWidth / 10;  // Mỗi ký tự đại diện 10 pixels
-        for (int i = 0; i < 10; i++) {
-            bar += (i < numBars) ? "=" : " ";
-        }
+        for (int i = 0; i < 14; i++) bar += (i < barWidth) ? "=" : " ";
         bar += "]";
-        oled.print(0, 48, bar);
+        oled.print(0, 36, bar);
 
-        // uptime
-        oled.print(0, 58, "Up: " + String(millis() / 1000) + "s");
+        // Dòng 5: Uptime
+        oled.print(0, 50, "Up: " + String(millis() / 1000) + "s");
+
+        // 3. ĐẨY BUFFER RA MÀN HÌNH (QUAN TRỌNG NHẤT)
+        // Đây là lúc duy nhất màn hình được refresh -> Hết chớp
+        oled.show();
     }
 }

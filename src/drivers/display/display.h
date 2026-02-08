@@ -21,6 +21,9 @@ public:
     // In text với auto-wrap từ tọa độ (x, y), chia thành nhiều dòng nếu cần
     void printWrapped(uint16_t x, uint16_t y, const String& text);
 
+    // Cập nhật màn hình để hiển thị các thay đổi
+    void show();
+
 private:
     // Cắt chuỗi an toàn nếu quá dài để tránh xử lý nặng
     String safeTruncate(const String& s, size_t maxLen);

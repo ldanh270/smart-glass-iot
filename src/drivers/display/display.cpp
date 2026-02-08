@@ -24,19 +24,17 @@ bool OledDisplay::init() {
 // Xóa toàn bộ hiển thị
 void OledDisplay::clear() {
     display.clearDisplay();
-    display.display();
 }
 
 // In text tại tọa độ (x, y)
 void OledDisplay::print(uint16_t x, uint16_t y, const String& text) {
     String t = stripVietnamese(text);
-    t = safeTruncate(t, 128); // Giới hạn tối đa 128 ký tự cho an toàn
+    t = safeTruncate(t, 128);
 
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(x, y);
     display.println(t);
-    display.display();
 }
 
 // In text với auto-wrap từ (x, y), chia thành nhiều dòng
@@ -171,6 +169,11 @@ char OledDisplay::vietneseToAscii(uint16_t u) {
     default:
         return '?';
     }
+}
+
+// THÊM HÀM MỚI
+void OledDisplay::show() {
+    display.display();
 }
 
 // Loại bỏ dấu tiếng Việt nếu cấu hình yêu cầu
