@@ -12,34 +12,34 @@
 
 class Button {
 private:
-  uint8_t pin;
+    uint8_t pin;
 
-  bool lastState;
-  bool currentState;
+    bool lastState;
+    bool currentState;
 
-  unsigned long lastDebounceTime;
-  unsigned long pressedTime;
+    unsigned long lastDebounceTime;
+    unsigned long pressedTime;
 
-  bool holdTriggered;
+    bool holdTriggered;
 
-  static const unsigned long DEBOUNCE_MS = 50;
-  static const unsigned long HOLD_TIME_MS = 1000; // giữ > 1s
+    static const unsigned long DEBOUNCE_MS = 50;
+    static const unsigned long HOLD_TIME_MS = 1000; // giữ > 1s
 
 public:
-  // Khởi tạo button với chân GPIO
-  Button(uint8_t pin);
+    // Khởi tạo button với chân GPIO
+    Button(uint8_t pin);
 
-  // Setup pinMode
-  void init();
+    // Setup pinMode
+    void init();
 
-  // Trả true khi nhấn ngắn
-  bool isPressed();
+    // Trả true khi nhấn ngắn
+    bool isPressed();
 
-  // Trả true khi giữ lâu
-  bool onHold();
+    // Trả true khi giữ lâu
+    bool onHold();
 
-  // Trả true nếu chân button đang ở trạng thái LOW (nhấn) - đọc thô, không debounce
-  bool isDownRaw();
+    // Trả true nếu chân button đang ở trạng thái LOW (nhấn) - đọc thô, không debounce
+    bool isDownRaw();
 };
 
 #endif

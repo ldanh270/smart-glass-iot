@@ -16,4 +16,7 @@
 #define MIC_I2S_WS   48
 #define MIC_I2S_SD   35
 
+#define SAMPLE_RATE 16000
+#define FRAME_SAMPLES 256
+
 // Speaker
