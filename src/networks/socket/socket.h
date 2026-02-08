@@ -21,26 +21,26 @@ private:
 
     // Thực hiện kết nối WebSocket nội bộ
     bool connectInternal();
-    
+
 public:
     // Khởi tạo Socket
     Socket();
-    
+
     // Kết nối tới server WebSocket (dùng WS_SERVER_URL)
     bool connect();
-    
+
     // Gửi dữ liệu nhị phân tới server
     void sendBinary(const uint8_t* data, size_t length);
-    
+
     // Xử lý tin nhắn văn bản nhận từ server (override nếu cần)
     virtual void onText(const char* payload);
-    
+
     // Ngắt kết nối khỏi server
     void disconnect();
-    
+
     // Cập nhật trạng thái WebSocket (gọi trong main loop)
     void loop();
-    
+
     // Kiểm tra trạng thái kết nối
     bool isConnected();
 };
