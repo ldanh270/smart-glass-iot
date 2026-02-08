@@ -20,3 +20,6 @@
 #define FRAME_SAMPLES 256
 
 // Speaker
+#define SPK_I2S_BCLK 38
+#define SPK_I2S_WS   39
+#define SPK_I2S_DIN  40
